@@ -5,6 +5,7 @@ from django.db import models
 ROLE_CHOICES = [
         ('hostelowner', 'HostelOwner'),
         ('user', 'User'),
+        ('warden', 'Warden'),
     ]
 
 class CustomUser(AbstractUser):
