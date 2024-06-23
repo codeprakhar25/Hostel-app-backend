@@ -16,13 +16,29 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
+from rest_framework import routers,permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="Hostel API",
+        default_version='v1',
+        description="Hostel API description",
+        terms_of_service="https://www.example.com/terms/",
+        contact=openapi.Contact(email="contact@example.com"),
+        license=openapi.License(name="Awesome License"),
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('', include('authentication.urls')),
     path('api/', include('hostel.urls')),
     path('api/', include('tenant.urls')),
-    path('api/', include('owner.urls')),
-    path('api/', include('warden.urls')),
-    path('api/', include('room.urls')),
+    path('api/', include('room.urls'))
 ]
