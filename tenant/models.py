@@ -36,6 +36,12 @@ class Tenant(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def has_rent_pending(self):
+        most_recent_rent = self.rents.order_by('-rent_due_date').first()
+        if most_recent_rent and most_recent_rent.rent_due_date and most_recent_rent.rent_due_date < datetime.now().date():
+            return True
+        return False
 
 class Rent(models.Model):
     tenant = models.ForeignKey(Tenant, on_delete=models.PROTECT, related_name='rents')

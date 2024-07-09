@@ -8,6 +8,7 @@ from .models import Tenant, Rent, Attachment
 from .serializers import TenantSerializer, RentSerializer, AttachmentSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.utils import timezone
 
 class TenantViewSet(viewsets.ModelViewSet):
     queryset = Tenant.objects.all()
@@ -49,6 +50,37 @@ class TenantViewSet(viewsets.ModelViewSet):
         tenant = self.get_object()
         attachments = Attachment.objects.filter(tenant=tenant)
         serializer = AttachmentSerializer(attachments, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'], url_path='rent-pending-by-hostel')
+    def rent_pending_by_hostel(self, request):
+        hostel_id = request.query_params.get('hostel_id')
+        if not hostel_id:
+            return Response({"error": "hostel_id parameter is required."}, status=400)
+        
+        today = timezone.now().date()
+        tenants = Tenant.objects.filter(
+            hostel_id=hostel_id,
+            rents__rent_due_date__lt=today,
+            rents__rent_remaining__gt=0
+        ).distinct()
+
+        serializer = TenantSerializer(tenants, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path='due-date-passed-by-hostel')
+    def due_date_passed_by_hostel(self, request):
+        hostel_id = request.query_params.get('hostel_id')
+        if not hostel_id:
+            return Response({"error": "hostel_id parameter is required."}, status=400)
+        
+        today = timezone.now().date()
+        tenants = Tenant.objects.filter(
+            hostel_id=hostel_id,
+            next_due_date__lt=today
+        )
+
+        serializer = TenantSerializer(tenants, many=True)
         return Response(serializer.data)
 
 class RentViewSet(viewsets.ModelViewSet):

@@ -3,7 +3,7 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
-from backend.permissions import  IsHostelOwner, IsHostelOwnerOrWarden, IsWarden
+from backend.permissions import IsHostelOwner, IsHostelOwnerOrWarden, IsWarden
 from .models import Hostel
 from .serializers import HostelSerializer
 
@@ -14,10 +14,13 @@ class HostelViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if hasattr(user, 'hostelowner'):
-            return Hostel.objects.filter(owner=user.hostelowner)
-        elif hasattr(user, 'warden'):
-            return Hostel.objects.filter(warden=user.warden)
+
+        if user.is_authenticated:
+            if user.role == 'hostelowner':
+                return Hostel.objects.filter(owners=user)
+            elif user.role == 'warden':
+                return Hostel.objects.filter(wardens=user)
+            else:
+                return Hostel.objects.none()
         else:
             return Hostel.objects.none()
-
